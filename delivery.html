@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshMart - Delivery Dashboard</title>
+    <link rel="stylesheet" href="delivery-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>
+                    <i class="fas fa-motorcycle"></i>
+                    FreshMart Delivery
+                </h1>
+                <p>Sign in to access your delivery dashboard</p>
+            </div>
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="deliveryBoyId">Select Your Name</label>
+                    <select id="deliveryBoyId" required>
+                        <option value="">Choose your name...</option>
+                        <option value="1">Rajesh Kumar</option>
+                        <option value="2">Suresh Singh</option>
+                        <option value="3">Amit Patel</option>
+                        <option value="4">Vikram Sharma</option>
+                        <option value="5">Deepak Gupta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="deliveryPassword">Password</label>
+                    <input type="password" id="deliveryPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard" id="dashboard" style="display: none;">
+        <header class="header">
+            <div class="container">
+                <div class="header-left">
+                    <h1 class="logo">
+                        <i class="fas fa-motorcycle"></i>
+                        Delivery Dashboard
+                    </h1>
+                    <div class="delivery-boy-info">
+                        <span class="delivery-boy-name" id="deliveryBoyName">Rajesh Kumar</span>
+                        <span class="delivery-status" id="deliveryStatus">Available</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="live-indicator">
+                        <i class="fas fa-circle"></i>
+                        <span>Live</span>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <!-- Stats Overview -->
+                <section class="stats-section">
+                    <h2>Today's Performance</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="ordersDelivered">0</h3>
+                                <p>Orders Delivered</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="earnings">₹0</h3>
+                                <p>Today's Earnings</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="currentOrder">0</h3>
+                                <p>Current Order</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="rating">4.8</h3>
+                                <p>Your Rating</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Current Order -->
+                <section class="current-order-section" id="currentOrderSection" style="display: none;">
+                    <h2>Current Delivery</h2>
+                    <div class="current-order-card" id="currentOrderCard">
+                        <!-- Current order details will be loaded here -->
+                    </div>
+                </section>
+
+                <!-- Available Orders -->
+                <section class="available-orders-section">
+                    <div class="section-header">
+                        <h2>Available Orders</h2>
+                        <div class="status-toggle">
+                            <button class="toggle-btn active" onclick="toggleOrders('available')">Available</button>
+                            <button class="toggle-btn" onclick="toggleOrders('assigned')">My Orders</button>
+                            <button class="toggle-btn" onclick="toggleOrders('completed')">Completed</button>
+                        </div>
+                    </div>
+                    <div class="orders-container" id="ordersContainer">
+                        <!-- Orders will be loaded here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal" id="orderDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Order Details</h3>
+                <button class="close-modal" onclick="closeOrderDetails()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="order-info" id="orderInfo">
+                    <!-- Order details will be loaded here -->
+                </div>
+                <div class="order-actions" id="orderActions">
+                    <!-- Action buttons will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Confirmation Modal -->
+    <div class="modal" id="deliveryConfirmationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Mark as Delivered</h3>
+                <button class="close-modal" onclick="closeDeliveryConfirmation()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delivery-form">
+                    <div class="form-group">
+                        <label for="deliveryNotes">Delivery Notes (Optional)</label>
+                        <textarea id="deliveryNotes" rows="3" placeholder="Any notes about the delivery..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryPhoto">Photo Proof (Optional)</label>
+                        <input type="file" id="deliveryPhoto" accept="image/*">
+                    </div>
+                    <button class="deliver-btn" onclick="confirmDelivery()">
+                        <i class="fas fa-check"></i>
+                        Mark as Delivered
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <i class="fas fa-bell"></i>
+        <span id="notificationText">New order assigned!</span>
+    </div>
+
+    <!-- Auto-refresh notification -->
+    <div class="refresh-notification" id="refreshNotification">
+        <i class="fas fa-sync-alt"></i>
+        <span>Auto-refreshing...</span>
+    </div>
+
+    <script src="delivery-script.js"></script>
+</body>
+</html>

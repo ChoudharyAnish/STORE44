@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshMart - Grocery Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <i class="fas fa-shopping-cart"></i>
+                STORE 44 - Your Everyday Needs 
+            </h1>
+            <div class="header-actions">
+                <button class="cart-btn" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Search and Categories -->
+            <section class="search-section">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search for products...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="categories">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="vegetables">Vegetables</button>
+                    <button class="category-btn" data-category="fruits">Fruits</button>
+                    <button class="category-btn" data-category="dairy">Dairy</button>
+                    <button class="category-btn" data-category="grains">Grains</button>
+                    <button class="category-btn" data-category="snacks">Snacks</button>
+                </div>
+            </section>
+
+            <!-- Products Grid -->
+            <section class="products-section">
+                <h2>Fresh Products</h2>
+                <div class="products-grid" id="productsGrid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Shopping Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Your Cart</h3>
+            <button class="close-cart" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be loaded here -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <strong>Total: ₹<span id="cartTotal">0</span></strong>
+            </div>
+            <button class="checkout-btn" onclick="proceedToCheckout()">
+                <i class="fas fa-credit-card"></i>
+                Place Order
+            </button>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Place Your Order</h3>
+                <button class="close-modal" onclick="closeCheckout()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="checkoutForm">
+                    <div class="form-group">
+                        <label for="customerName">Name</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Phone Number</label>
+                        <input type="tel" id="customerPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryAddress">Delivery Address</label>
+                        <textarea id="deliveryAddress" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryTime">Preferred Delivery Time</label>
+                        <select id="deliveryTime" required>
+                            <option value="asap">ASAP (10-15 mins)</option>
+                            <option value="1hour">Within 1 Hour</option>
+                            <option value="2hours">Within 2 Hours</option>
+                            <option value="evening">Evening (6-8 PM)</option>
+                        </select>
+                    </div>
+                    <div class="order-summary">
+                        <h4>Order Summary</h4>
+                        <div id="orderSummary"></div>
+                        <div class="total-amount">
+                            <strong>Total: ₹<span id="orderTotal">0</span></strong>
+                        </div>
+                    </div>
+                    <button type="submit" class="place-order-btn">
+                        <i class="fas fa-check"></i>
+                        Confirm Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Confirmation Modal -->
+    <div class="modal" id="orderConfirmationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Order Confirmed!</h3>
+            </div>
+            <div class="modal-body">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <p>Your order has been placed successfully!</p>
+                <div class="order-details">
+                    <p><strong>Order ID:</strong> <span id="orderId"></span></p>
+                    <p><strong>Estimated Delivery:</strong> <span id="estimatedDelivery"></span></p>
+                </div>
+                <button class="close-confirmation" onclick="closeOrderConfirmation()">
+                    Continue Shopping
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
