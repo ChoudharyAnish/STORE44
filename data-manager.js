@@ -206,31 +206,34 @@ class DataManager {
             this.setProducts(this.fallbackData.products);
         }
 
-        // Create a test order if no orders exist (for demo purposes)
-        if (orders.length === 0) {
-            console.log('Creating test order for demo...');
-            const testOrder = {
-                orderId: 'DEMO-' + Date.now(),
-                customerName: 'Demo Customer',
-                customerPhone: '+91 98765 43210',
-                deliveryAddress: '123 Demo Street, Demo City',
-                deliveryTime: 'asap',
-                items: [
-                    { name: 'Fresh Tomatoes', quantity: 2, price: 40 },
-                    { name: 'Onions', quantity: 1, price: 30 }
-                ],
-                total: 110,
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-                assignedTo: null,
-                assignedToId: null
-            };
-            
-            orders.push(testOrder);
-            this.setOrders(orders);
-        }
+        // No demo orders will be created - only real customer orders
+        // Clean any existing demo/test orders
+        this.cleanDemoOrders();
 
         console.log('Default data initialization complete');
+    }
+
+    // Clean existing demo/test orders from storage
+    cleanDemoOrders() {
+        console.log('Cleaning demo/test orders from storage...');
+        const orders = this.getOrders();
+        const realOrders = orders.filter(order => 
+            !order.orderId.startsWith('DEMO-') && 
+            !order.orderId.startsWith('TEST-') && 
+            !order.orderId.startsWith('MOBILE-TEST-') &&
+            order.customerName !== 'Demo Customer' &&
+            order.customerName !== 'Test Customer' &&
+            order.customerName !== 'Mobile Test Customer'
+        );
+        
+        if (orders.length !== realOrders.length) {
+            console.log(`Removed ${orders.length - realOrders.length} demo/test orders`);
+            this.setOrders(realOrders);
+        } else {
+            console.log('No demo/test orders found');
+        }
+        
+        return realOrders;
     }
 
     // Clear all data (useful for testing)

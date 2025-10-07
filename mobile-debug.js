@@ -114,30 +114,25 @@ class MobileDebugger {
             return;
         }
 
-        // Create test order
-        const testOrder = {
-            orderId: 'MOBILE-TEST-' + Date.now(),
-            customerName: 'Mobile Test Customer',
-            customerPhone: '+91 98765 43210',
-            deliveryAddress: '123 Mobile Test Street, Test City',
-            deliveryTime: 'asap',
-            items: [
-                { name: 'Fresh Tomatoes', quantity: 2, price: 40 },
-                { name: 'Onions', quantity: 1, price: 30 }
-            ],
-            total: 110,
-            status: 'pending',
-            createdAt: new Date().toISOString(),
-            assignedTo: null,
-            assignedToId: null
-        };
+        // No test orders will be created - only real customer orders
+        console.log('⚠️ Test order creation disabled - only real customer orders allowed');
         
-        const orders = window.dataManager.getOrders();
-        orders.push(testOrder);
-        window.dataManager.setOrders(orders);
+        // Only create products if needed
+        const products = window.dataManager.getProducts();
+        if (products.length === 0) {
+            console.log('Creating test products...');
+            const testProducts = [
+                { id: 1, name: "Fresh Tomatoes", price: 40, category: "vegetables", image: "🍅", stock: 50 },
+                { id: 2, name: "Onions", price: 30, category: "vegetables", image: "🧅", stock: 30 },
+                { id: 3, name: "Potatoes", price: 25, category: "vegetables", image: "🥔", stock: 40 },
+                { id: 4, name: "Milk", price: 60, category: "dairy", image: "🥛", stock: 20 },
+                { id: 5, name: "Bread", price: 35, category: "bakery", image: "🍞", stock: 15 }
+            ];
+            window.dataManager.setProducts(testProducts);
+            console.log('✅ Test products created');
+        }
         
-        console.log('Test order created:', testOrder);
-        return testOrder;
+        console.log('✅ Test data creation complete');
     }
 
     showMobileAlert() {

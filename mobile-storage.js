@@ -155,29 +155,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ Default delivery boys created');
     }
     
-    // If no orders, create a demo order (only if this is the first visit)
-    if (orders.length === 0) {
-        console.log('Creating demo order for first-time visitors...');
-        const demoOrder = {
-            orderId: 'DEMO-' + Date.now(),
-            customerName: 'Demo Customer',
-            customerPhone: '+91 98765 43210',
-            deliveryAddress: '123 Demo Street, Demo City',
-            deliveryTime: 'asap',
-            items: [
-                { name: 'Fresh Tomatoes', quantity: 2, price: 40 },
-                { name: 'Onions', quantity: 1, price: 30 }
-            ],
-            total: 110,
-            status: 'pending',
-            createdAt: new Date().toISOString(),
-            assignedTo: null,
-            assignedToId: null
-        };
-        
-        orders.push(demoOrder);
-        window.mobileStorage.setItem('orders', JSON.stringify(orders));
-        console.log('✅ Demo order created');
+    // No demo orders will be created - only real customer orders
+    // Clean any existing demo/test orders
+    const realOrders = orders.filter(order => 
+        !order.orderId.startsWith('DEMO-') && 
+        !order.orderId.startsWith('TEST-') && 
+        !order.orderId.startsWith('MOBILE-TEST-') &&
+        order.customerName !== 'Demo Customer' &&
+        order.customerName !== 'Test Customer' &&
+        order.customerName !== 'Mobile Test Customer'
+    );
+    
+    if (orders.length !== realOrders.length) {
+        console.log(`🧹 Removed ${orders.length - realOrders.length} demo/test orders from mobile storage`);
+        window.mobileStorage.setItem('orders', JSON.stringify(realOrders));
     }
     
     console.log('Mobile Storage initialization complete');
@@ -206,34 +197,8 @@ window.clearMobileStorage = function() {
 };
 
 window.createTestOrder = function() {
-    console.log('📝 Creating test order...');
-    const orders = JSON.parse(window.mobileStorage.getItem('orders') || '[]');
-    
-    const testOrder = {
-        orderId: 'TEST-' + Date.now(),
-        customerName: 'Test Customer',
-        customerPhone: '+91 98765 43210',
-        deliveryAddress: '123 Test Street, Test City',
-        deliveryTime: 'asap',
-        items: [
-            { name: 'Fresh Tomatoes', quantity: 2, price: 40 },
-            { name: 'Onions', quantity: 1, price: 30 }
-        ],
-        total: 110,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        assignedTo: null,
-        assignedToId: null
-    };
-    
-    orders.push(testOrder);
-    window.mobileStorage.setItem('orders', JSON.stringify(orders));
-    console.log('✅ Test order created:', testOrder);
-    
-    // Refresh the page to show the new order
-    setTimeout(() => {
-        location.reload();
-    }, 1000);
+    console.log('⚠️ Test order creation disabled - only real customer orders allowed');
+    console.log('Please place orders through the customer interface instead');
 };
 
 console.log('📱 Mobile Storage Wrapper loaded successfully!');
