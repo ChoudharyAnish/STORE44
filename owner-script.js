@@ -1,11 +1,30 @@
-// Sample delivery boys data
-const deliveryBoys = [
-    { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 12, rating: 4.8 },
-    { id: 2, name: "Suresh Singh", phone: "+91 98765 43211", status: "busy", ordersDelivered: 8, rating: 4.6 },
-    { id: 3, name: "Amit Patel", phone: "+91 98765 43212", status: "available", ordersDelivered: 15, rating: 4.9 },
-    { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 6, rating: 4.5 },
-    { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "busy", ordersDelivered: 20, rating: 4.7 }
-];
+// Dynamic delivery boys data - starts empty, populated by actual users
+let deliveryBoys = [];
+
+// Initialize delivery boys from localStorage or create default ones
+function initializeDeliveryBoys() {
+    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+    if (savedDeliveryBoys) {
+        deliveryBoys = JSON.parse(savedDeliveryBoys);
+        // Ensure all delivery boys have online status set
+        deliveryBoys.forEach(boy => {
+            if (boy.online === undefined) {
+                boy.online = true;
+            }
+        });
+        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+    } else {
+        // Create initial delivery boys if none exist
+        deliveryBoys = [
+            { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
+            { id: 2, name: "Suresh Singh", phone: "+91 98765 43211", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
+            { id: 3, name: "Amit Patel", phone: "+91 98765 43212", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
+            { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
+            { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, online: true }
+        ];
+        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+    }
+}
 
 // Global variables
 let currentFilter = 'all';
@@ -15,6 +34,7 @@ let autoRefreshInterval;
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    initializeDeliveryBoys();
     setupEventListeners();
     loadDashboardData();
     startAutoRefresh();
@@ -70,7 +90,12 @@ function loadOrders() {
         ? orders 
         : orders.filter(order => order.status === currentFilter);
     
-    renderOrders(filteredOrders);
+    // Sort orders by creation date (newest first)
+    const sortedOrders = filteredOrders.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    
+    renderOrders(sortedOrders);
 }
 
 // Render orders table
@@ -80,7 +105,7 @@ function renderOrders(orders) {
     if (orders.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="empty-state">
+                <td colspan="8" class="empty-state">
                     <i class="fas fa-shopping-cart"></i>
                     <h3>No orders found</h3>
                     <p>Orders will appear here when customers place them</p>
@@ -110,6 +135,7 @@ function renderOrders(orders) {
                     </div>
                 ` : ''}
             </td>
+            <td class="order-time">${new Date(order.createdAt).toLocaleString()}</td>
             <td class="delivery-time">${getDeliveryTimeText(order.deliveryTime)}</td>
             <td class="action-buttons">
                 <button class="action-btn btn-view" onclick="viewOrderDetails('${order.orderId}')">
@@ -135,8 +161,47 @@ function renderOrders(orders) {
     `).join('');
 }
 
+// Update delivery boy status based on actual orders
+function updateDeliveryBoyStatus() {
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    // Load delivery boys from localStorage to get latest online status
+    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+    if (savedDeliveryBoys) {
+        const savedBoys = JSON.parse(savedDeliveryBoys);
+        // Update online status from saved data
+        savedBoys.forEach(savedBoy => {
+            const boy = deliveryBoys.find(b => b.id === savedBoy.id);
+            if (boy) {
+                boy.online = savedBoy.online;
+            }
+        });
+    }
+    
+    // Reset all delivery boys to available
+    deliveryBoys.forEach(boy => {
+        boy.status = 'available';
+    });
+    
+    // Check for active orders (out-for-delivery)
+    const activeOrders = orders.filter(order => order.status === 'out-for-delivery');
+    
+    // Mark delivery boys as busy if they have active orders
+    activeOrders.forEach(order => {
+        if (order.assignedToId) {
+            const deliveryBoy = deliveryBoys.find(boy => boy.id === order.assignedToId);
+            if (deliveryBoy) {
+                deliveryBoy.status = 'busy';
+            }
+        }
+    });
+}
+
 // Load delivery boys
 function loadDeliveryBoys() {
+    // Update status based on actual orders
+    updateDeliveryBoyStatus();
+    
     const grid = document.getElementById('deliveryBoysGrid');
     
     grid.innerHTML = deliveryBoys.map(boy => `
@@ -147,9 +212,15 @@ function loadDeliveryBoys() {
                 </div>
                 <div class="delivery-boy-info">
                     <h3>${boy.name}</h3>
-                    <span class="delivery-boy-status status-${boy.status}">
-                        ${boy.status === 'available' ? 'Available' : 'Busy'}
-                    </span>
+                    <div class="status-container">
+                        <span class="delivery-boy-status status-${boy.status}">
+                            ${boy.status === 'available' ? 'Available' : 'Busy'}
+                        </span>
+                        <span class="online-status ${boy.online ? 'online' : 'offline'}">
+                            <i class="fas fa-circle"></i>
+                            ${boy.online ? 'Online' : 'Offline'}
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="delivery-boy-stats">

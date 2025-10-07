@@ -1,0 +1,26 @@
+{
+  "name": "freshmart-grocery-shop",
+  "version": "1.0.0",
+  "description": "A complete grocery shop management system with customer, owner, and delivery boy interfaces",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "grocery",
+    "shop",
+    "management",
+    "delivery",
+    "orders",
+    "dashboard"
+  ],
+  "author": "FreshMart Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

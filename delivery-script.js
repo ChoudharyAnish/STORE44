@@ -1,11 +1,30 @@
-// Delivery boys data (same as owner dashboard)
-const deliveryBoys = [
-    { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 12, rating: 4.8, password: "1234" },
-    { id: 2, name: "Suresh Singh", phone: "+91 98765 43211", status: "busy", ordersDelivered: 8, rating: 4.6, password: "1234" },
-    { id: 3, name: "Amit Patel", phone: "+91 98765 43212", status: "available", ordersDelivered: 15, rating: 4.9, password: "1234" },
-    { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 6, rating: 4.5, password: "1234" },
-    { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "busy", ordersDelivered: 20, rating: 4.7, password: "1234" }
-];
+// Dynamic delivery boys data - synchronized with owner dashboard
+let deliveryBoys = [];
+
+// Initialize delivery boys from localStorage
+function initializeDeliveryBoys() {
+    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+    if (savedDeliveryBoys) {
+        deliveryBoys = JSON.parse(savedDeliveryBoys);
+        // Ensure all delivery boys have online status set
+        deliveryBoys.forEach(boy => {
+            if (boy.online === undefined) {
+                boy.online = true;
+            }
+        });
+        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+    } else {
+        // Create initial delivery boys if none exist
+        deliveryBoys = [
+            { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+            { id: 2, name: "Suresh Singh", phone: "+91 98765 43211", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+            { id: 3, name: "Amit Patel", phone: "+91 98765 43212", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+            { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+            { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true }
+        ];
+        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+    }
+}
 
 // Global variables
 let currentDeliveryBoy = null;
@@ -15,6 +34,7 @@ let selectedOrderId = null;
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
+    initializeDeliveryBoys();
     setupEventListeners();
     checkLoginStatus();
 });
@@ -50,9 +70,28 @@ function handleLogin(e) {
     
     if (deliveryBoy && deliveryBoy.password === password) {
         currentDeliveryBoy = deliveryBoy;
-        localStorage.setItem('currentDeliveryBoy', JSON.stringify(deliveryBoy));
+        
+        // Set delivery boy as online when logging in
+        currentDeliveryBoy.online = true;
+        
+        // Update the delivery boys array in localStorage
+        const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+        if (savedDeliveryBoys) {
+            const deliveryBoys = JSON.parse(savedDeliveryBoys);
+            const boyIndex = deliveryBoys.findIndex(boy => boy.id === currentDeliveryBoy.id);
+            if (boyIndex !== -1) {
+                deliveryBoys[boyIndex].online = true;
+                localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+            }
+        }
+        
+        localStorage.setItem('currentDeliveryBoy', JSON.stringify(currentDeliveryBoy));
         showDashboard();
         loadDashboardData();
+        
+        // Sync with owner dashboard
+        syncWithOwnerDashboard();
+        
         showNotification(`Welcome back, ${deliveryBoy.name}!`, 'success');
     } else {
         showNotification('Invalid credentials. Please try again.', 'error');
@@ -68,10 +107,91 @@ function showDashboard() {
     document.getElementById('deliveryBoyName').textContent = currentDeliveryBoy.name;
     document.getElementById('deliveryStatus').textContent = 
         currentDeliveryBoy.status === 'available' ? 'Available' : 'Busy';
+    
+    // Update online status
+    updateOnlineStatusDisplay();
+}
+
+// Toggle online/offline status
+function toggleOnlineStatus() {
+    currentDeliveryBoy.online = !currentDeliveryBoy.online;
+    localStorage.setItem('currentDeliveryBoy', JSON.stringify(currentDeliveryBoy));
+    
+    // Update the delivery boys array in localStorage
+    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+    if (savedDeliveryBoys) {
+        const deliveryBoys = JSON.parse(savedDeliveryBoys);
+        const boyIndex = deliveryBoys.findIndex(boy => boy.id === currentDeliveryBoy.id);
+        if (boyIndex !== -1) {
+            deliveryBoys[boyIndex].online = currentDeliveryBoy.online;
+            localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+        }
+    }
+    
+    updateOnlineStatusDisplay();
+    
+    const status = currentDeliveryBoy.online ? 'online' : 'offline';
+    showNotification(`You are now ${status}`, 'success');
+    
+    // Trigger immediate sync with owner dashboard
+    syncWithOwnerDashboard();
+}
+
+// Update online status display
+function updateOnlineStatusDisplay() {
+    const toggleBtn = document.getElementById('onlineToggle');
+    const statusText = document.getElementById('onlineStatusText');
+    
+    if (currentDeliveryBoy.online) {
+        toggleBtn.classList.remove('offline');
+        statusText.textContent = 'Online';
+    } else {
+        toggleBtn.classList.add('offline');
+        statusText.textContent = 'Offline';
+    }
+}
+
+// Sync delivery boy status with owner dashboard
+function syncWithOwnerDashboard() {
+    // This simulates real-time sync - in a real app, this would be WebSocket or API call
+    console.log(`🔄 Syncing delivery boy ${currentDeliveryBoy.name} status: ${currentDeliveryBoy.online ? 'Online' : 'Offline'}`);
+    
+    // Update delivery boys data in localStorage for owner dashboard to read
+    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+    if (savedDeliveryBoys) {
+        const deliveryBoys = JSON.parse(savedDeliveryBoys);
+        const boyIndex = deliveryBoys.findIndex(boy => boy.id === currentDeliveryBoy.id);
+        if (boyIndex !== -1) {
+            deliveryBoys[boyIndex].online = currentDeliveryBoy.online;
+            deliveryBoys[boyIndex].status = currentDeliveryBoy.status;
+            localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+        }
+    }
 }
 
 // Logout
 function logout() {
+    // Set delivery boy as offline before logging out
+    if (currentDeliveryBoy) {
+        currentDeliveryBoy.online = false;
+        
+        // Update the delivery boys array in localStorage
+        const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+        if (savedDeliveryBoys) {
+            const deliveryBoys = JSON.parse(savedDeliveryBoys);
+            const boyIndex = deliveryBoys.findIndex(boy => boy.id === currentDeliveryBoy.id);
+            if (boyIndex !== -1) {
+                deliveryBoys[boyIndex].online = false;
+                localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+            }
+        }
+        
+        // Sync with owner dashboard
+        syncWithOwnerDashboard();
+        
+        console.log(`🚪 ${currentDeliveryBoy.name} logged out - status set to offline`);
+    }
+    
     currentDeliveryBoy = null;
     localStorage.removeItem('currentDeliveryBoy');
     document.getElementById('loginScreen').style.display = 'flex';
@@ -114,8 +234,10 @@ function loadOrders() {
     switch (currentView) {
         case 'available':
             // Show orders that are confirmed but not assigned to anyone
+            // Also show pending orders that can be picked up
             filteredOrders = orders.filter(order => 
-                order.status === 'confirmed' && !order.assignedTo
+                (order.status === 'confirmed' && !order.assignedToId) ||
+                (order.status === 'pending' && !order.assignedToId)
             );
             break;
         case 'assigned':
@@ -203,7 +325,7 @@ function getActionButtons(order) {
                     <i class="fas fa-eye"></i> View
                 </button>
                 <button class="action-btn btn-accept" onclick="acceptOrder('${order.orderId}')">
-                    <i class="fas fa-hand-paper"></i> Accept
+                    <i class="fas fa-hand-paper"></i> Pick Up
                 </button>
             `;
         case 'assigned':
@@ -233,7 +355,7 @@ function getActionButtons(order) {
 function getEmptyStateMessage() {
     switch (currentView) {
         case 'available':
-            return 'No available orders at the moment. Check back later!';
+            return 'No available orders at the moment. New orders will appear here for pickup!';
         case 'assigned':
             return 'You have no assigned orders. Accept some orders to get started!';
         case 'completed':
@@ -271,7 +393,21 @@ function acceptOrder(orderId) {
         currentDeliveryBoy.status = 'busy';
         localStorage.setItem('currentDeliveryBoy', JSON.stringify(currentDeliveryBoy));
         
+        // Update the delivery boys array in localStorage
+        const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+        if (savedDeliveryBoys) {
+            const deliveryBoys = JSON.parse(savedDeliveryBoys);
+            const boyIndex = deliveryBoys.findIndex(boy => boy.id === currentDeliveryBoy.id);
+            if (boyIndex !== -1) {
+                deliveryBoys[boyIndex].status = 'busy';
+                localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+            }
+        }
+        
         localStorage.setItem('orders', JSON.stringify(orders));
+        
+        // Sync with owner dashboard
+        syncWithOwnerDashboard();
         
         showNotification('Order accepted successfully!', 'success');
         loadDashboardData();
@@ -303,7 +439,22 @@ function confirmDelivery() {
         currentDeliveryBoy.ordersDelivered++;
         localStorage.setItem('currentDeliveryBoy', JSON.stringify(currentDeliveryBoy));
         
+        // Update the delivery boys array in localStorage
+        const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
+        if (savedDeliveryBoys) {
+            const deliveryBoys = JSON.parse(savedDeliveryBoys);
+            const boyIndex = deliveryBoys.findIndex(boy => boy.id === currentDeliveryBoy.id);
+            if (boyIndex !== -1) {
+                deliveryBoys[boyIndex].status = 'available';
+                deliveryBoys[boyIndex].ordersDelivered++;
+                localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+            }
+        }
+        
         localStorage.setItem('orders', JSON.stringify(orders));
+        
+        // Sync with owner dashboard
+        syncWithOwnerDashboard();
         
         showNotification('Order marked as delivered!', 'success');
         closeDeliveryConfirmation();

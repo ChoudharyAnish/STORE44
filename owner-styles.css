@@ -204,6 +204,29 @@ body {
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     overflow: hidden;
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* Custom scrollbar for orders table */
+.orders-table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.orders-table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.orders-table-container::-webkit-scrollbar-thumb {
+    background: #3498db;
+    border-radius: 4px;
+}
+
+.orders-table-container::-webkit-scrollbar-thumb:hover {
+    background: #2980b9;
 }
 
 .orders-table {
@@ -314,6 +337,12 @@ body {
 .delivery-time {
     font-size: 0.9rem;
     color: #7f8c8d;
+}
+
+.order-time {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    font-weight: 500;
 }
 
 .action-buttons {
@@ -715,6 +744,8 @@ body {
     
     .orders-table-container {
         overflow-x: auto;
+        max-height: 50vh;
+        overflow-y: auto;
     }
     
     .orders-table {
