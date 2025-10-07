@@ -1,49 +1,33 @@
 // Dynamic delivery boys data - synchronized with owner dashboard
 let deliveryBoys = [];
 
-// Initialize delivery boys from localStorage
+// Initialize delivery boys using DataManager
 function initializeDeliveryBoys() {
-    console.log('Initializing delivery boys...');
+    console.log('Delivery: Initializing delivery boys...');
     
-    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
-    if (savedDeliveryBoys) {
-        try {
-            deliveryBoys = JSON.parse(savedDeliveryBoys);
-            console.log('Loaded delivery boys from localStorage:', deliveryBoys);
-            
-            // Validate that we have the correct data structure
-            if (!Array.isArray(deliveryBoys) || deliveryBoys.length === 0) {
-                throw new Error('Invalid delivery boys data');
-            }
-            
-            // Ensure all delivery boys have required fields
-            let needsUpdate = false;
-            deliveryBoys.forEach(boy => {
-                if (!boy.password || boy.password !== '1234') {
-                    boy.password = '1234';
-                    needsUpdate = true;
-                }
-                if (boy.online === undefined) {
-                    boy.online = true;
-                    needsUpdate = true;
-                }
-            });
-            
-            if (needsUpdate) {
-                localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
-                console.log('Updated delivery boys data');
-            }
-        } catch (error) {
-            console.log('Error loading delivery boys, creating fresh data:', error);
-            createFreshDeliveryBoys();
+    deliveryBoys = window.dataManager.getDeliveryBoys();
+    console.log('Delivery: Loaded delivery boys:', deliveryBoys.length);
+    
+    // Ensure all delivery boys have required fields
+    let needsUpdate = false;
+    deliveryBoys.forEach(boy => {
+        if (!boy.password || boy.password !== '1234') {
+            boy.password = '1234';
+            needsUpdate = true;
         }
-    } else {
-        console.log('No delivery boys found in localStorage, creating fresh data');
-        createFreshDeliveryBoys();
+        if (boy.online === undefined) {
+            boy.online = true;
+            needsUpdate = true;
+        }
+    });
+    
+    if (needsUpdate) {
+        window.dataManager.setDeliveryBoys(deliveryBoys);
+        console.log('Delivery: Updated delivery boys data');
     }
 }
 
-// Create fresh delivery boys data
+// Create fresh delivery boys data using DataManager
 function createFreshDeliveryBoys() {
     deliveryBoys = [
         { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
@@ -52,8 +36,8 @@ function createFreshDeliveryBoys() {
         { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
         { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true }
     ];
-    localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
-    console.log('Created fresh delivery boys:', deliveryBoys);
+    window.dataManager.setDeliveryBoys(deliveryBoys);
+    console.log('Delivery: Created fresh delivery boys:', deliveryBoys.length);
 }
 
 // Global variables
@@ -104,8 +88,115 @@ function testDeployedLogin() {
     console.log('=== END TEST ===');
 }
 
+// Mobile debug function
+function debugMobileData() {
+    console.log('=== MOBILE DEBUG ===');
+    console.log('1. Current delivery boys:', deliveryBoys);
+    console.log('2. Current delivery boy:', currentDeliveryBoy);
+    console.log('3. Current view:', currentView);
+    
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    console.log('4. All orders:', orders);
+    console.log('5. Orders count:', orders.length);
+    
+    const products = JSON.parse(localStorage.getItem('products') || '[]');
+    console.log('6. All products:', products);
+    console.log('7. Products count:', products.length);
+    
+    // Test filtering
+    if (currentDeliveryBoy) {
+        const availableOrders = orders.filter(order => 
+            (order.status === 'confirmed' && !order.assignedToId) ||
+            (order.status === 'pending' && !order.assignedToId)
+        );
+        console.log('8. Available orders for pickup:', availableOrders);
+    }
+    
+    console.log('=== END MOBILE DEBUG ===');
+}
+
+// Check and create test data if needed
+function ensureTestData() {
+    console.log('Checking for test data...');
+    
+    // Check if there are any orders
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    console.log('Current orders count:', orders.length);
+    
+    if (orders.length === 0) {
+        console.log('No orders found, creating test order...');
+        const testOrder = {
+            orderId: 'TEST-001',
+            customerName: 'Test Customer',
+            customerPhone: '+91 98765 43210',
+            deliveryAddress: '123 Test Street, Test City',
+            deliveryTime: 'asap',
+            items: [
+                { name: 'Fresh Tomatoes', quantity: 2, price: 40 },
+                { name: 'Onions', quantity: 1, price: 30 }
+            ],
+            total: 110,
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            assignedTo: null,
+            assignedToId: null
+        };
+        
+        orders.push(testOrder);
+        localStorage.setItem('orders', JSON.stringify(orders));
+        console.log('Test order created:', testOrder);
+    }
+    
+    // Check if there are any products
+    const products = JSON.parse(localStorage.getItem('products') || '[]');
+    console.log('Current products count:', products.length);
+    
+    if (products.length === 0) {
+        console.log('No products found, creating test products...');
+        const testProducts = [
+            { id: 1, name: "Fresh Tomatoes", price: 40, category: "vegetables", image: "🍅", stock: 50 },
+            { id: 2, name: "Onions", price: 30, category: "vegetables", image: "🧅", stock: 30 },
+            { id: 3, name: "Potatoes", price: 25, category: "vegetables", image: "🥔", stock: 40 },
+            { id: 4, name: "Milk", price: 60, category: "dairy", image: "🥛", stock: 20 },
+            { id: 5, name: "Bread", price: 35, category: "bakery", image: "🍞", stock: 15 }
+        ];
+        
+        localStorage.setItem('products', JSON.stringify(testProducts));
+        console.log('Test products created:', testProducts);
+    }
+}
+
+// Manual refresh function for mobile users
+function manualRefresh() {
+    console.log('Manual refresh triggered');
+    showNotification('Refreshing data...', 'info');
+    
+    // Ensure test data exists
+    ensureTestData();
+    
+    // Force reinitialize everything
+    console.log('Reinitializing delivery boys...');
+    initializeDeliveryBoys();
+    
+    console.log('Loading fresh data...');
+    loadDashboardData();
+    
+    // Also try to sync with owner dashboard data
+    console.log('Syncing with owner dashboard...');
+    syncWithOwnerDashboard();
+    
+    setTimeout(() => {
+        showNotification('Data refreshed successfully!', 'success');
+    }, 1000);
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing delivery app...');
+    
+    // Ensure test data exists first
+    ensureTestData();
+    
     initializeDeliveryBoys();
     setupEventListeners();
     checkLoginStatus();
