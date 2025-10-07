@@ -139,29 +139,7 @@ function ensureTestData() {
     const orders = JSON.parse(localStorage.getItem('orders') || '[]');
     console.log('Current orders count:', orders.length);
     
-    if (orders.length === 0) {
-        console.log('No orders found, creating test order...');
-        const testOrder = {
-            orderId: 'TEST-001',
-            customerName: 'Test Customer',
-            customerPhone: '+91 98765 43210',
-            deliveryAddress: '123 Test Street, Test City',
-            deliveryTime: 'asap',
-            items: [
-                { name: 'Fresh Tomatoes', quantity: 2, price: 40 },
-                { name: 'Onions', quantity: 1, price: 30 }
-            ],
-            total: 110,
-            status: 'pending',
-            createdAt: new Date().toISOString(),
-            assignedTo: null,
-            assignedToId: null
-        };
-        
-        orders.push(testOrder);
-        localStorage.setItem('orders', JSON.stringify(orders));
-        console.log('Test order created:', testOrder);
-    }
+    // No test orders will be created - only real customer orders
     
     // Check if there are any products
     const products = JSON.parse(localStorage.getItem('products') || '[]');
