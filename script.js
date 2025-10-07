@@ -1,54 +1,84 @@
-// Sample grocery products data
-const products = [
-    // Vegetables
-    { id: 1, name: "Fresh Tomatoes", price: 40, category: "vegetables", image: "🍅", stock: 50 },
-    { id: 2, name: "Onions", price: 30, category: "vegetables", image: "🧅", stock: 30 },
-    { id: 3, name: "Potatoes", price: 25, category: "vegetables", image: "🥔", stock: 40 },
-    { id: 4, name: "Carrots", price: 35, category: "vegetables", image: "🥕", stock: 25 },
-    { id: 5, name: "Spinach", price: 20, category: "vegetables", image: "🥬", stock: 20 },
-    { id: 6, name: "Bell Peppers", price: 60, category: "vegetables", image: "🫑", stock: 15 },
-    
-    // Fruits
-    { id: 7, name: "Bananas", price: 50, category: "fruits", image: "🍌", stock: 30 },
-    { id: 8, name: "Apples", price: 80, category: "fruits", image: "🍎", stock: 25 },
-    { id: 9, name: "Oranges", price: 70, category: "fruits", image: "🍊", stock: 20 },
-    { id: 10, name: "Grapes", price: 120, category: "fruits", image: "🍇", stock: 15 },
-    { id: 11, name: "Mangoes", price: 100, category: "fruits", image: "🥭", stock: 18 },
-    { id: 12, name: "Strawberries", price: 150, category: "fruits", image: "🍓", stock: 12 },
-    
-    // Dairy
-    { id: 13, name: "Milk (1L)", price: 60, category: "dairy", image: "🥛", stock: 20 },
-    { id: 14, name: "Cheese", price: 200, category: "dairy", image: "🧀", stock: 10 },
-    { id: 15, name: "Yogurt", price: 45, category: "dairy", image: "🍶", stock: 25 },
-    { id: 16, name: "Butter", price: 80, category: "dairy", image: "🧈", stock: 15 },
-    { id: 17, name: "Eggs (12)", price: 90, category: "dairy", image: "🥚", stock: 30 },
-    
-    // Grains
-    { id: 18, name: "Rice (1kg)", price: 80, category: "grains", image: "🍚", stock: 40 },
-    { id: 19, name: "Wheat Flour", price: 50, category: "grains", image: "🌾", stock: 35 },
-    { id: 20, name: "Lentils", price: 120, category: "grains", image: "🫘", stock: 25 },
-    { id: 21, name: "Oats", price: 100, category: "grains", image: "🌾", stock: 20 },
-    { id: 22, name: "Quinoa", price: 200, category: "grains", image: "🌾", stock: 15 },
-    
-    // Snacks
-    { id: 23, name: "Biscuits", price: 30, category: "snacks", image: "🍪", stock: 50 },
-    { id: 24, name: "Chips", price: 25, category: "snacks", image: "🍟", stock: 40 },
-    { id: 25, name: "Nuts Mix", price: 150, category: "snacks", image: "🥜", stock: 20 },
-    { id: 26, name: "Chocolate", price: 80, category: "snacks", image: "🍫", stock: 30 },
-    { id: 27, name: "Candy", price: 20, category: "snacks", image: "🍬", stock: 60 }
-];
-
 // Global variables
 let cart = [];
 let currentFilter = 'all';
-let filteredProducts = [...products];
+let filteredProducts = [];
+let products = []; // Will be populated by customer inventory manager
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
+
+// Initialize the application
+async function initializeApp() {
+    // Wait for customer inventory manager to load
+    if (window.customerInventoryManager) {
+        await waitForInventoryManager();
+    } else {
+        // Wait a bit and try again
+        setTimeout(initializeApp, 100);
+        return;
+    }
+    
+    // Update products from inventory manager
+    updateProductsFromInventory();
+    
+    // Setup the app
     renderProducts();
     setupEventListeners();
     updateCartUI();
-});
+    updateCategories();
+}
+
+// Wait for inventory manager to be ready
+async function waitForInventoryManager() {
+    return new Promise((resolve) => {
+        const checkInventory = () => {
+            if (window.customerInventoryManager && window.customerInventoryManager.products.length > 0) {
+                resolve();
+            } else {
+                setTimeout(checkInventory, 100);
+            }
+        };
+        checkInventory();
+    });
+}
+
+// Update products from inventory manager
+function updateProductsFromInventory() {
+    if (window.customerInventoryManager) {
+        products = window.customerInventoryManager.getProducts();
+        filteredProducts = [...products];
+        console.log(`Loaded ${products.length} products from inventory system`);
+    }
+}
+
+// Update categories dynamically
+function updateCategories() {
+    if (window.customerInventoryManager) {
+        const categories = window.customerInventoryManager.getCategories();
+        const categoryContainer = document.querySelector('.categories');
+        
+        if (categoryContainer && categories.length > 0) {
+            // Keep the "All" button
+            const allButton = categoryContainer.querySelector('[data-category="all"]');
+            categoryContainer.innerHTML = '';
+            categoryContainer.appendChild(allButton);
+            
+            // Add dynamic categories
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-btn';
+                button.setAttribute('data-category', category);
+                button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                categoryContainer.appendChild(button);
+            });
+            
+            // Re-setup event listeners for new buttons
+            setupCategoryListeners();
+        }
+    }
+}
 
 // Setup event listeners
 function setupEventListeners() {
@@ -73,6 +103,22 @@ function setupEventListeners() {
     // Checkout form
     const checkoutForm = document.getElementById('checkoutForm');
     checkoutForm.addEventListener('submit', handleOrderSubmission);
+}
+
+// Setup category listeners (for dynamically added buttons)
+function setupCategoryListeners() {
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            categoryBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            currentFilter = this.dataset.category;
+            filterProducts();
+        });
+    });
 }
 
 // Handle search
@@ -110,30 +156,56 @@ function renderProducts() {
         return;
     }
     
-    productsGrid.innerHTML = filteredProducts.map(product => `
-        <div class="product-card">
-            <div class="product-image">
-                ${product.image}
-            </div>
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <div class="product-price">₹${product.price}</div>
-                <div class="product-actions">
-                    <div class="quantity-controls">
-                        <button class="qty-btn" onclick="decreaseQuantity(${product.id})" 
-                                ${getCartItemQuantity(product.id) <= 0 ? 'disabled' : ''}>-</button>
-                        <span class="quantity">${getCartItemQuantity(product.id)}</span>
-                        <button class="qty-btn" onclick="increaseQuantity(${product.id})"
-                                ${getCartItemQuantity(product.id) >= product.stock ? 'disabled' : ''}>+</button>
+    productsGrid.innerHTML = filteredProducts.map(product => {
+        const stockStatus = window.customerInventoryManager ? 
+            window.customerInventoryManager.getStockStatus(product) : 
+            { status: 'available', text: 'In Stock', class: 'in-stock' };
+        
+        const canOrder = window.customerInventoryManager ? 
+            window.customerInventoryManager.canOrderProduct(product.id) : 
+            true;
+        
+        const maxQuantity = Math.min(product.stock, 10); // Limit to 10 or available stock
+        
+        return `
+            <div class="product-card ${stockStatus.class}">
+                <div class="product-image">
+                    ${product.image}
+                </div>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <div class="product-price">₹${product.price}</div>
+                    <div class="stock-info">
+                        <span class="stock-status ${stockStatus.class}">
+                            <i class="fas fa-${stockStatus.status === 'out' ? 'times-circle' : 
+                                stockStatus.status === 'low' ? 'exclamation-triangle' : 'check-circle'}"></i>
+                            ${stockStatus.text}
+                        </span>
                     </div>
-                    <button class="add-to-cart" onclick="addToCart(${product.id})"
-                            ${getCartItemQuantity(product.id) >= product.stock ? 'disabled' : ''}>
-                        ${getCartItemQuantity(product.id) > 0 ? 'Update' : 'Add to Cart'}
-                    </button>
+                    <div class="product-actions">
+                        ${canOrder ? `
+                            <div class="quantity-controls">
+                                <button class="qty-btn" onclick="decreaseQuantity('${product.id}')" 
+                                        ${getCartItemQuantity(product.id) <= 0 ? 'disabled' : ''}>-</button>
+                                <span class="quantity">${getCartItemQuantity(product.id)}</span>
+                                <button class="qty-btn" onclick="increaseQuantity('${product.id}')"
+                                        ${getCartItemQuantity(product.id) >= maxQuantity ? 'disabled' : ''}>+</button>
+                            </div>
+                            <button class="add-to-cart" onclick="addToCart('${product.id}')"
+                                    ${getCartItemQuantity(product.id) >= maxQuantity ? 'disabled' : ''}>
+                                ${getCartItemQuantity(product.id) > 0 ? 'Update' : 'Add to Cart'}
+                            </button>
+                        ` : `
+                            <div class="out-of-stock-message">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Out of Stock</span>
+                            </div>
+                        `}
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Cart functions
@@ -144,11 +216,22 @@ function getCartItemQuantity(productId) {
 
 function addToCart(productId) {
     const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Check if product can be ordered
+    if (window.customerInventoryManager && !window.customerInventoryManager.canOrderProduct(productId)) {
+        showNotification('This product is out of stock!', 'error');
+        return;
+    }
+    
     const existingItem = cart.find(item => item.id === productId);
     
     if (existingItem) {
         if (existingItem.quantity < product.stock) {
             existingItem.quantity++;
+        } else {
+            showNotification('Maximum quantity reached!', 'warning');
+            return;
         }
     } else {
         cart.push({
@@ -314,6 +397,13 @@ function handleOrderSubmission(e) {
     
     const estimatedDelivery = deliveryTimes[formData.deliveryTime];
     
+    // Update inventory for each ordered item
+    if (window.customerInventoryManager) {
+        for (const item of formData.items) {
+            window.customerInventoryManager.updateProductStock(item.id, item.quantity);
+        }
+    }
+    
     // Store order in localStorage (in a real app, this would be sent to a server)
     const orders = JSON.parse(localStorage.getItem('orders') || '[]');
     orders.push({
@@ -370,4 +460,60 @@ function formatCurrency(amount) {
         style: 'currency',
         currency: 'INR'
     }).format(amount);
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 
+            type === 'error' ? 'times-circle' : 
+            type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#27ae60' : 
+            type === 'error' ? '#e74c3c' : 
+            type === 'warning' ? '#f39c12' : '#3498db'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        z-index: 3000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    `;
+    
+    // Add animation keyframes
+    if (!document.querySelector('#notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 }

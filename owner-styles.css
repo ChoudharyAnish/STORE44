@@ -794,3 +794,132 @@ body {
         font-size: 1.5rem;
     }
 }
+
+/* Quick Actions Section */
+.quick-actions-section {
+    margin-top: 2rem;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.quick-action-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    border-color: #3498db;
+}
+
+.inventory-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.inventory-card:hover {
+    border-color: #fff;
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+}
+
+.quick-action-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.inventory-card .quick-action-icon {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.quick-action-content {
+    flex: 1;
+}
+
+.quick-action-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.quick-action-content p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.quick-action-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-action-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.quick-action-stats .stat-item i {
+    font-size: 0.8rem;
+}
+
+.quick-action-arrow {
+    font-size: 1.5rem;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.quick-action-card:hover .quick-action-arrow {
+    opacity: 1;
+    transform: translateX(5px);
+}
+
+/* Responsive adjustments for quick actions */
+@media (max-width: 768px) {
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-action-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .quick-action-stats {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .quick-action-content h3 {
+        font-size: 1.2rem;
+    }
+    
+    .quick-action-content p {
+        font-size: 0.9rem;
+    }
+}
