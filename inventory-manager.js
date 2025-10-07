@@ -541,6 +541,21 @@ class InventoryManager {
                 this.saveToLocalStorage();
                 console.log('Inventory loaded successfully from JSONBin.io');
                 return true;
+            } else if (response.status === 404) {
+                console.warn('JSONBin.io bin not found (404). This might be a new deployment or the bin was deleted.');
+                console.log('Attempting to create a new bin...');
+                
+                // Try to create a new bin
+                const newBinCreated = await this.createNewBin();
+                if (newBinCreated) {
+                    console.log('✅ New bin created! Please update your JSONBIN_BIN_ID environment variable.');
+                    this.loadFromLocalStorage();
+                    return false;
+                } else {
+                    console.log('Failed to create new bin, using local storage');
+                    this.loadFromLocalStorage();
+                    return false;
+                }
             } else {
                 const errorText = await response.text();
                 console.error(`JSONBin.io load failed: ${response.status} - ${errorText}`);
@@ -716,6 +731,35 @@ class InventoryManager {
         };
     }
     
+    // Create a new JSONBin.io bin
+    async createNewBin() {
+        try {
+            console.log('Creating new JSONBin.io bin...');
+            
+            const response = await fetch(this.jsonbinBaseUrl, {
+                method: 'POST',
+                headers: this.jsonbinHeaders,
+                body: JSON.stringify(this.inventory)
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                this.jsonbinBinId = result.metadata.id;
+                console.log('✅ New bin created successfully!');
+                console.log('🆔 New Bin ID:', this.jsonbinBinId);
+                console.log('📝 Please update your JSONBIN_BIN_ID environment variable to:', this.jsonbinBinId);
+                return true;
+            } else {
+                const errorText = await response.text();
+                console.error(`Failed to create new bin: ${response.status} - ${errorText}`);
+                return false;
+            }
+        } catch (error) {
+            console.error('Failed to create new bin:', error);
+            return false;
+        }
+    }
+
     // Load configuration from server
     async loadConfiguration() {
         try {
