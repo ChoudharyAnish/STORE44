@@ -132,10 +132,15 @@
                 <section class="available-orders-section">
                     <div class="section-header">
                         <h2>Available Orders</h2>
-                        <div class="status-toggle">
-                            <button class="toggle-btn active" onclick="toggleOrders('available')">Available</button>
-                            <button class="toggle-btn" onclick="toggleOrders('assigned')">My Orders</button>
-                            <button class="toggle-btn" onclick="toggleOrders('completed')">Completed</button>
+                        <div class="header-actions">
+                            <button class="refresh-btn" onclick="manualRefresh()" title="Refresh Data">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <div class="status-toggle">
+                                <button class="toggle-btn active" onclick="toggleOrders('available')">Available</button>
+                                <button class="toggle-btn" onclick="toggleOrders('assigned')">My Orders</button>
+                                <button class="toggle-btn" onclick="toggleOrders('completed')">Completed</button>
+                            </div>
                         </div>
                     </div>
                     <div class="orders-container" id="ordersContainer">
