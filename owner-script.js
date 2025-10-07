@@ -59,29 +59,10 @@ function setupEventListeners() {
 
 // Start auto-refresh every 30 seconds
 function startAutoRefresh() {
-    // Clear any existing interval
-    if (autoRefreshInterval) {
-        clearInterval(autoRefreshInterval);
-    }
-    
     autoRefreshInterval = setInterval(() => {
         showRefreshNotification();
         loadDashboardData();
     }, 30000); // 30 seconds
-    
-    // Also refresh when page becomes visible (mobile optimization)
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            console.log('Owner dashboard: Page became visible, refreshing data...');
-            loadDashboardData();
-        }
-    });
-    
-    // Refresh when page regains focus (mobile optimization)
-    window.addEventListener('focus', function() {
-        console.log('Owner dashboard: Page regained focus, refreshing data...');
-        loadDashboardData();
-    });
 }
 
 // Show refresh notification
