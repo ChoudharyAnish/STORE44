@@ -314,15 +314,15 @@ function handleOrderSubmission(e) {
     
     const estimatedDelivery = deliveryTimes[formData.deliveryTime];
     
-    // Store order using DataManager (in a real app, this would be sent to a server)
-    const orders = window.dataManager.getOrders();
+    // Store order in localStorage (in a real app, this would be sent to a server)
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
     orders.push({
         ...formData,
         orderId: orderId,
         status: 'pending',
         createdAt: new Date().toISOString()
     });
-    window.dataManager.setOrders(orders);
+    localStorage.setItem('orders', JSON.stringify(orders));
     
     // Show confirmation modal
     document.getElementById('orderId').textContent = orderId;
