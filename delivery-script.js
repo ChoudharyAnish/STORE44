@@ -6,6 +6,7 @@ function initializeDeliveryBoys() {
     const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
     if (savedDeliveryBoys) {
         deliveryBoys = JSON.parse(savedDeliveryBoys);
+        console.log('Loaded delivery boys from localStorage:', deliveryBoys);
         // Ensure all delivery boys have online status set
         deliveryBoys.forEach(boy => {
             if (boy.online === undefined) {
@@ -23,6 +24,7 @@ function initializeDeliveryBoys() {
             { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true }
         ];
         localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+        console.log('Created initial delivery boys:', deliveryBoys);
     }
 }
 
@@ -31,6 +33,14 @@ let currentDeliveryBoy = null;
 let currentView = 'available';
 let autoRefreshInterval;
 let selectedOrderId = null;
+
+// Reset function for debugging (can be called from browser console)
+function resetDeliveryData() {
+    localStorage.removeItem('deliveryBoys');
+    localStorage.removeItem('currentDeliveryBoy');
+    console.log('Delivery data reset. Refreshing page...');
+    location.reload();
+}
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
@@ -66,7 +76,12 @@ function handleLogin(e) {
     const deliveryBoyId = parseInt(document.getElementById('deliveryBoyId').value);
     const password = document.getElementById('deliveryPassword').value;
     
+    console.log('Login attempt:', { deliveryBoyId, password });
+    console.log('Available delivery boys:', deliveryBoys);
+    
     const deliveryBoy = deliveryBoys.find(boy => boy.id === deliveryBoyId);
+    
+    console.log('Found delivery boy:', deliveryBoy);
     
     if (deliveryBoy && deliveryBoy.password === password) {
         currentDeliveryBoy = deliveryBoy;
@@ -94,6 +109,7 @@ function handleLogin(e) {
         
         showNotification(`Welcome back, ${deliveryBoy.name}!`, 'success');
     } else {
+        console.log('Login failed - invalid credentials');
         showNotification('Invalid credentials. Please try again.', 'error');
     }
 }
