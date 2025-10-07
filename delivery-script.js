@@ -1,49 +1,33 @@
 // Dynamic delivery boys data - synchronized with owner dashboard
 let deliveryBoys = [];
 
-// Initialize delivery boys from localStorage
+// Initialize delivery boys using DataManager
 function initializeDeliveryBoys() {
-    console.log('Initializing delivery boys...');
+    console.log('Delivery: Initializing delivery boys...');
     
-    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
-    if (savedDeliveryBoys) {
-        try {
-            deliveryBoys = JSON.parse(savedDeliveryBoys);
-            console.log('Loaded delivery boys from localStorage:', deliveryBoys);
-            
-            // Validate that we have the correct data structure
-            if (!Array.isArray(deliveryBoys) || deliveryBoys.length === 0) {
-                throw new Error('Invalid delivery boys data');
-            }
-            
-            // Ensure all delivery boys have required fields
-            let needsUpdate = false;
-            deliveryBoys.forEach(boy => {
-                if (!boy.password || boy.password !== '1234') {
-                    boy.password = '1234';
-                    needsUpdate = true;
-                }
-                if (boy.online === undefined) {
-                    boy.online = true;
-                    needsUpdate = true;
-                }
-            });
-            
-            if (needsUpdate) {
-                localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
-                console.log('Updated delivery boys data');
-            }
-        } catch (error) {
-            console.log('Error loading delivery boys, creating fresh data:', error);
-            createFreshDeliveryBoys();
+    deliveryBoys = window.dataManager.getDeliveryBoys();
+    console.log('Delivery: Loaded delivery boys:', deliveryBoys.length);
+    
+    // Ensure all delivery boys have required fields
+    let needsUpdate = false;
+    deliveryBoys.forEach(boy => {
+        if (!boy.password || boy.password !== '1234') {
+            boy.password = '1234';
+            needsUpdate = true;
         }
-    } else {
-        console.log('No delivery boys found in localStorage, creating fresh data');
-        createFreshDeliveryBoys();
+        if (boy.online === undefined) {
+            boy.online = true;
+            needsUpdate = true;
+        }
+    });
+    
+    if (needsUpdate) {
+        window.dataManager.setDeliveryBoys(deliveryBoys);
+        console.log('Delivery: Updated delivery boys data');
     }
 }
 
-// Create fresh delivery boys data
+// Create fresh delivery boys data using DataManager
 function createFreshDeliveryBoys() {
     deliveryBoys = [
         { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
@@ -52,8 +36,8 @@ function createFreshDeliveryBoys() {
         { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
         { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true }
     ];
-    localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
-    console.log('Created fresh delivery boys:', deliveryBoys);
+    window.dataManager.setDeliveryBoys(deliveryBoys);
+    console.log('Delivery: Created fresh delivery boys:', deliveryBoys.length);
 }
 
 // Global variables

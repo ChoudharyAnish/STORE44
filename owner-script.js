@@ -1,29 +1,25 @@
 // Dynamic delivery boys data - starts empty, populated by actual users
 let deliveryBoys = [];
 
-// Initialize delivery boys from localStorage or create default ones
+// Initialize delivery boys using DataManager
 function initializeDeliveryBoys() {
-    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
-    if (savedDeliveryBoys) {
-        deliveryBoys = JSON.parse(savedDeliveryBoys);
-        // Ensure all delivery boys have online status set
-        deliveryBoys.forEach(boy => {
-            if (boy.online === undefined) {
-                boy.online = true;
-            }
-        });
-        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
-    } else {
-        // Create initial delivery boys if none exist
-        deliveryBoys = [
-            { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
-            { id: 2, name: "Suresh Singh", phone: "+91 98765 43211", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
-            { id: 3, name: "Amit Patel", phone: "+91 98765 43212", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
-            { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 0, rating: 5.0, online: true },
-            { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, online: true }
-        ];
-        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+    console.log('Owner: Initializing delivery boys...');
+    deliveryBoys = window.dataManager.getDeliveryBoys();
+    
+    // Ensure all delivery boys have online status set
+    let needsUpdate = false;
+    deliveryBoys.forEach(boy => {
+        if (boy.online === undefined) {
+            boy.online = true;
+            needsUpdate = true;
+        }
+    });
+    
+    if (needsUpdate) {
+        window.dataManager.setDeliveryBoys(deliveryBoys);
     }
+    
+    console.log('Owner: Delivery boys initialized:', deliveryBoys.length);
 }
 
 // Global variables
@@ -102,9 +98,10 @@ function loadDashboardData() {
     updateLastUpdatedTime();
 }
 
-// Load orders from localStorage
+// Load orders using DataManager
 function loadOrders() {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    console.log('Owner: Loading orders...');
+    const orders = window.dataManager.getOrders();
     const filteredOrders = currentFilter === 'all' 
         ? orders 
         : orders.filter(order => order.status === currentFilter);
@@ -114,6 +111,7 @@ function loadOrders() {
         return new Date(b.createdAt) - new Date(a.createdAt);
     });
     
+    console.log('Owner: Loaded orders:', sortedOrders.length);
     renderOrders(sortedOrders);
 }
 
@@ -182,14 +180,13 @@ function renderOrders(orders) {
 
 // Update delivery boy status based on actual orders
 function updateDeliveryBoyStatus() {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orders = window.dataManager.getOrders();
     
-    // Load delivery boys from localStorage to get latest online status
-    const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
-    if (savedDeliveryBoys) {
-        const savedBoys = JSON.parse(savedDeliveryBoys);
+    // Load delivery boys from DataManager to get latest online status
+    const savedDeliveryBoys = window.dataManager.getDeliveryBoys();
+    if (savedDeliveryBoys && savedDeliveryBoys.length > 0) {
         // Update online status from saved data
-        savedBoys.forEach(savedBoy => {
+        savedDeliveryBoys.forEach(savedBoy => {
             const boy = deliveryBoys.find(b => b.id === savedBoy.id);
             if (boy) {
                 boy.online = savedBoy.online;
@@ -259,9 +256,9 @@ function loadDeliveryBoys() {
     `).join('');
 }
 
-// Update statistics
+// Update statistics using DataManager
 function updateStats() {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orders = window.dataManager.getOrders();
     const today = new Date().toDateString();
     const todayOrders = orders.filter(order => 
         new Date(order.createdAt).toDateString() === today
@@ -271,6 +268,8 @@ function updateStats() {
     const totalRevenue = todayOrders.reduce((sum, order) => sum + order.total, 0);
     const pendingOrders = todayOrders.filter(order => order.status === 'pending').length;
     const availableDeliveryBoys = deliveryBoys.filter(boy => boy.status === 'available').length;
+    
+    console.log('Owner: Stats updated:', { totalOrders, totalRevenue, pendingOrders, availableDeliveryBoys });
     
     document.getElementById('totalOrders').textContent = totalOrders;
     document.getElementById('totalRevenue').textContent = `₹${totalRevenue}`;
@@ -296,9 +295,9 @@ function getDeliveryTimeText(deliveryTime) {
     return times[deliveryTime] || deliveryTime;
 }
 
-// View order details
+// View order details using DataManager
 function viewOrderDetails(orderId) {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orders = window.dataManager.getOrders();
     const order = orders.find(o => o.orderId === orderId);
     
     if (!order) return;
@@ -387,15 +386,15 @@ function closeOrderDetails() {
     document.getElementById('orderDetailsModal').classList.remove('show');
 }
 
-// Confirm order
+// Confirm order using DataManager
 function confirmOrder(orderId) {
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orders = window.dataManager.getOrders();
     const orderIndex = orders.findIndex(o => o.orderId === orderId);
     
     if (orderIndex !== -1) {
         orders[orderIndex].status = 'confirmed';
         orders[orderIndex].confirmedAt = new Date().toISOString();
-        localStorage.setItem('orders', JSON.stringify(orders));
+        window.dataManager.setOrders(orders);
         
         // Show notification
         showNotification('Order confirmed successfully!', 'success');
@@ -405,10 +404,10 @@ function confirmOrder(orderId) {
     }
 }
 
-// Assign delivery
+// Assign delivery using DataManager
 function assignDelivery(orderId) {
     selectedOrderId = orderId;
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orders = window.dataManager.getOrders();
     const order = orders.find(o => o.orderId === orderId);
     
     if (!order) return;
@@ -492,11 +491,11 @@ function closeAssignDelivery() {
     selectedDeliveryBoyId = null;
 }
 
-// Assign order to delivery boy
+// Assign order to delivery boy using DataManager
 function assignOrderToDeliveryBoy() {
     if (!selectedOrderId || !selectedDeliveryBoyId) return;
     
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orders = window.dataManager.getOrders();
     const orderIndex = orders.findIndex(o => o.orderId === selectedOrderId);
     const deliveryBoy = deliveryBoys.find(boy => boy.id === selectedDeliveryBoyId);
     
@@ -510,7 +509,8 @@ function assignOrderToDeliveryBoy() {
         // Update delivery boy status to busy
         deliveryBoy.status = 'busy';
         
-        localStorage.setItem('orders', JSON.stringify(orders));
+        window.dataManager.setOrders(orders);
+        window.dataManager.setDeliveryBoys(deliveryBoys);
         
         // Show notification
         showNotification(`Order assigned to ${deliveryBoy.name}`, 'success');
@@ -521,7 +521,7 @@ function assignOrderToDeliveryBoy() {
     }
 }
 
-// Quick assign function for pending orders
+// Quick assign function for pending orders using DataManager
 function quickAssignOrder(orderId) {
     const availableBoys = deliveryBoys.filter(boy => boy.status === 'available');
     
@@ -535,7 +535,7 @@ function quickAssignOrder(orderId) {
         (prev.rating > current.rating) ? prev : current
     );
     
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const orders = window.dataManager.getOrders();
     const orderIndex = orders.findIndex(o => o.orderId === orderId);
     
     if (orderIndex !== -1) {
@@ -548,7 +548,8 @@ function quickAssignOrder(orderId) {
         // Update delivery boy status to busy
         bestBoy.status = 'busy';
         
-        localStorage.setItem('orders', JSON.stringify(orders));
+        window.dataManager.setOrders(orders);
+        window.dataManager.setDeliveryBoys(deliveryBoys);
         
         // Show notification
         showNotification(`Order quickly assigned to ${bestBoy.name}`, 'success');
