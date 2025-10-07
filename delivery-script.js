@@ -3,29 +3,57 @@ let deliveryBoys = [];
 
 // Initialize delivery boys from localStorage
 function initializeDeliveryBoys() {
+    console.log('Initializing delivery boys...');
+    
     const savedDeliveryBoys = localStorage.getItem('deliveryBoys');
     if (savedDeliveryBoys) {
-        deliveryBoys = JSON.parse(savedDeliveryBoys);
-        console.log('Loaded delivery boys from localStorage:', deliveryBoys);
-        // Ensure all delivery boys have online status set
-        deliveryBoys.forEach(boy => {
-            if (boy.online === undefined) {
-                boy.online = true;
+        try {
+            deliveryBoys = JSON.parse(savedDeliveryBoys);
+            console.log('Loaded delivery boys from localStorage:', deliveryBoys);
+            
+            // Validate that we have the correct data structure
+            if (!Array.isArray(deliveryBoys) || deliveryBoys.length === 0) {
+                throw new Error('Invalid delivery boys data');
             }
-        });
-        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+            
+            // Ensure all delivery boys have required fields
+            let needsUpdate = false;
+            deliveryBoys.forEach(boy => {
+                if (!boy.password || boy.password !== '1234') {
+                    boy.password = '1234';
+                    needsUpdate = true;
+                }
+                if (boy.online === undefined) {
+                    boy.online = true;
+                    needsUpdate = true;
+                }
+            });
+            
+            if (needsUpdate) {
+                localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+                console.log('Updated delivery boys data');
+            }
+        } catch (error) {
+            console.log('Error loading delivery boys, creating fresh data:', error);
+            createFreshDeliveryBoys();
+        }
     } else {
-        // Create initial delivery boys if none exist
-        deliveryBoys = [
-            { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
-            { id: 2, name: "Suresh Singh", phone: "+91 98765 43211", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
-            { id: 3, name: "Amit Patel", phone: "+91 98765 43212", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
-            { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
-            { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true }
-        ];
-        localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
-        console.log('Created initial delivery boys:', deliveryBoys);
+        console.log('No delivery boys found in localStorage, creating fresh data');
+        createFreshDeliveryBoys();
     }
+}
+
+// Create fresh delivery boys data
+function createFreshDeliveryBoys() {
+    deliveryBoys = [
+        { id: 1, name: "Rajesh Kumar", phone: "+91 98765 43210", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+        { id: 2, name: "Suresh Singh", phone: "+91 98765 43211", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+        { id: 3, name: "Amit Patel", phone: "+91 98765 43212", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+        { id: 4, name: "Vikram Sharma", phone: "+91 98765 43213", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true },
+        { id: 5, name: "Deepak Gupta", phone: "+91 98765 43214", status: "available", ordersDelivered: 0, rating: 5.0, password: "1234", online: true }
+    ];
+    localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+    console.log('Created fresh delivery boys:', deliveryBoys);
 }
 
 // Global variables
@@ -40,6 +68,40 @@ function resetDeliveryData() {
     localStorage.removeItem('currentDeliveryBoy');
     console.log('Delivery data reset. Refreshing page...');
     location.reload();
+}
+
+// Quick fix function to reset passwords
+function fixPasswords() {
+    console.log('Fixing delivery boy passwords...');
+    deliveryBoys.forEach(boy => {
+        boy.password = '1234';
+        console.log(`Fixed password for ${boy.name}: ${boy.password}`);
+    });
+    localStorage.setItem('deliveryBoys', JSON.stringify(deliveryBoys));
+    console.log('All passwords fixed to "1234"');
+}
+
+// Test function for deployed version
+function testDeployedLogin() {
+    console.log('=== DEPLOYED LOGIN TEST ===');
+    console.log('1. Delivery boys array:', deliveryBoys);
+    console.log('2. Array length:', deliveryBoys ? deliveryBoys.length : 'UNDEFINED');
+    
+    if (!deliveryBoys || deliveryBoys.length === 0) {
+        console.log('❌ No delivery boys found! Running initialization...');
+        initializeDeliveryBoys();
+    }
+    
+    const testBoy = deliveryBoys.find(boy => boy.id === 1);
+    console.log('3. Test boy (ID 1):', testBoy);
+    
+    if (testBoy) {
+        console.log('4. Password:', testBoy.password);
+        console.log('5. Password type:', typeof testBoy.password);
+        console.log('6. Password === "1234":', testBoy.password === '1234');
+    }
+    
+    console.log('=== END TEST ===');
 }
 
 // Initialize the app
@@ -79,9 +141,20 @@ function handleLogin(e) {
     console.log('Login attempt:', { deliveryBoyId, password });
     console.log('Available delivery boys:', deliveryBoys);
     
+    // Ensure delivery boys are initialized (fallback for deployment issues)
+    if (!deliveryBoys || deliveryBoys.length === 0) {
+        console.log('No delivery boys found, initializing...');
+        initializeDeliveryBoys();
+    }
+    
     const deliveryBoy = deliveryBoys.find(boy => boy.id === deliveryBoyId);
     
     console.log('Found delivery boy:', deliveryBoy);
+    console.log('Password comparison details:');
+    console.log('- Input password:', `"${password}"`, 'Type:', typeof password);
+    console.log('- Stored password:', `"${deliveryBoy ? deliveryBoy.password : 'NOT FOUND'}"`, 'Type:', typeof (deliveryBoy ? deliveryBoy.password : 'undefined'));
+    console.log('- Are they equal?', deliveryBoy ? deliveryBoy.password === password : false);
+    console.log('- Are they strictly equal?', deliveryBoy ? deliveryBoy.password === password : false);
     
     if (deliveryBoy && deliveryBoy.password === password) {
         currentDeliveryBoy = deliveryBoy;
