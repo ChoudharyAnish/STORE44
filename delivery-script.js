@@ -104,13 +104,6 @@ function testDeployedLogin() {
     console.log('=== END TEST ===');
 }
 
-// Manual refresh function for mobile users
-function manualRefresh() {
-    console.log('Manual refresh triggered');
-    showNotification('Refreshing data...', 'info');
-    loadDashboardData();
-}
-
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
     initializeDeliveryBoys();
@@ -297,34 +290,12 @@ function logout() {
 
 // Start auto-refresh
 function startAutoRefresh() {
-    // Clear any existing interval
-    if (autoRefreshInterval) {
-        clearInterval(autoRefreshInterval);
-    }
-    
     autoRefreshInterval = setInterval(() => {
         if (currentDeliveryBoy) {
-            console.log('Auto-refreshing dashboard data...');
             showRefreshNotification();
             loadDashboardData();
         }
     }, 30000); // 30 seconds
-    
-    // Also refresh when page becomes visible (mobile optimization)
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden && currentDeliveryBoy) {
-            console.log('Page became visible, refreshing data...');
-            loadDashboardData();
-        }
-    });
-    
-    // Refresh when page regains focus (mobile optimization)
-    window.addEventListener('focus', function() {
-        if (currentDeliveryBoy) {
-            console.log('Page regained focus, refreshing data...');
-            loadDashboardData();
-        }
-    });
 }
 
 // Show refresh notification
@@ -339,73 +310,42 @@ function showRefreshNotification() {
 
 // Load all dashboard data
 function loadDashboardData() {
-    console.log('Loading dashboard data...');
-    
-    try {
-        // Ensure delivery boys are loaded
-        if (!deliveryBoys || deliveryBoys.length === 0) {
-            console.log('Re-initializing delivery boys...');
-            initializeDeliveryBoys();
-        }
-        
-        loadOrders();
-        updateStats();
-        updateCurrentOrder();
-        
-        console.log('Dashboard data loaded successfully');
-    } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        // Try to recover by reinitializing
-        initializeDeliveryBoys();
-        loadOrders();
-        updateStats();
-        updateCurrentOrder();
-    }
+    loadOrders();
+    updateStats();
+    updateCurrentOrder();
 }
 
 // Load orders based on current view
 function loadOrders() {
-    try {
-        const ordersData = localStorage.getItem('orders');
-        console.log('Raw orders data from localStorage:', ordersData);
-        
-        const orders = ordersData ? JSON.parse(ordersData) : [];
-        console.log('Parsed orders:', orders);
-        
-        let filteredOrders = [];
-        
-        switch (currentView) {
-            case 'available':
-                // Show orders that are confirmed but not assigned to anyone
-                // Also show pending orders that can be picked up
-                filteredOrders = orders.filter(order => 
-                    (order.status === 'confirmed' && !order.assignedToId) ||
-                    (order.status === 'pending' && !order.assignedToId)
-                );
-                break;
-            case 'assigned':
-                // Show orders assigned to current delivery boy
-                filteredOrders = orders.filter(order => 
-                    order.assignedToId === currentDeliveryBoy.id && 
-                    order.status === 'out-for-delivery'
-                );
-                break;
-            case 'completed':
-                // Show completed orders by current delivery boy
-                filteredOrders = orders.filter(order => 
-                    order.assignedToId === currentDeliveryBoy.id && 
-                    order.status === 'delivered'
-                );
-                break;
-        }
-        
-        console.log(`Filtered orders for view '${currentView}':`, filteredOrders);
-        renderOrders(filteredOrders);
-    } catch (error) {
-        console.error('Error loading orders:', error);
-        // Fallback: show empty state
-        renderOrders([]);
+    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+    let filteredOrders = [];
+    
+    switch (currentView) {
+        case 'available':
+            // Show orders that are confirmed but not assigned to anyone
+            // Also show pending orders that can be picked up
+            filteredOrders = orders.filter(order => 
+                (order.status === 'confirmed' && !order.assignedToId) ||
+                (order.status === 'pending' && !order.assignedToId)
+            );
+            break;
+        case 'assigned':
+            // Show orders assigned to current delivery boy
+            filteredOrders = orders.filter(order => 
+                order.assignedToId === currentDeliveryBoy.id && 
+                order.status === 'out-for-delivery'
+            );
+            break;
+        case 'completed':
+            // Show completed orders by current delivery boy
+            filteredOrders = orders.filter(order => 
+                order.assignedToId === currentDeliveryBoy.id && 
+                order.status === 'delivered'
+            );
+            break;
     }
+    
+    renderOrders(filteredOrders);
 }
 
 // Render orders
